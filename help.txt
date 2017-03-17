@@ -22,18 +22,18 @@ Set up a database saved on an external volume:
   The following command will initialise the postgresql database on an external
   volume that can be used to persist the data:
 
-  docker run -v /data/osm-postgresql:/var/lib/postgresql homme/openstreetmap-website \
+  docker run -it -v /data/osm-postgresql:/var/lib/postgresql homme/openstreetmap-website \
          initdb startdb createuser createdb createdbfuncs migrate
 
 Import data:
   The following will import the .osm file at `/tmp/import.osm` into the
   database.
 
-  docker run -v /data/osm-postgresql:/var/lib/postgresql -v /tmp:/data homme/openstreetmap-website \
+  docker run -it -v /data/osm-postgresql:/var/lib/postgresql -v /tmp:/data homme/openstreetmap-website \
          startdb import
 
 Add users:
-  docker run -v /data/osm-postgresql:/var/lib/postgresql homme/openstreetmap-website \
+  docker run -it -v /data/osm-postgresql:/var/lib/postgresql homme/openstreetmap-website \
          startdb cli
 
   Run the above command to get a cli in the container and then follow the

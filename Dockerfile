@@ -8,7 +8,7 @@
 # <https://github.com/openstreetmap/openstreetmap-website/blob/master/INSTALL.md>.
 #
 
-FROM phusion/baseimage:0.9.8
+FROM phusion/baseimage:0.9.19
 MAINTAINER Homme Zwaagstra <hrz@geodata.soton.ac.uk>
 
 # Set the locale. This affects the encoding of the Postgresql template
@@ -30,12 +30,12 @@ RUN sh /tmp/install-java.sh
 ENV RAILS_ENV production
 
 # Install the openstreetmap-website dependencies
-RUN apt-get install -y ruby1.9.1 libruby1.9.1 ruby1.9.1-dev ri1.9.1 \
+RUN apt-get install -y ruby2.3 libruby2.3 ruby2.3-dev \
                      libmagickwand-dev libxml2-dev libxslt1-dev nodejs \
-                     apache2 apache2-threaded-dev build-essential \
+                     apache2 apache2-dev build-essential \
                      postgresql postgresql-contrib libpq-dev postgresql-server-dev-all \
                      libsasl2-dev sudo
-RUN gem1.9.1 install bundle
+RUN gem2.3 install bundle
 
 # Get the `openstreetmap-website` code
 RUN cd /tmp && \
@@ -64,9 +64,9 @@ RUN cd /var/www && bundle exec rake assets:precompile
 RUN ln -s /tmp /var/www/tmp
 
 # Add the production and development sites for Apache
-ADD apache-production.conf /etc/apache2/sites-available/production
-ADD apache-development.conf /etc/apache2/sites-available/development
-RUN a2dissite default
+ADD apache-production.conf /etc/apache2/sites-available/production.conf
+ADD apache-development.conf /etc/apache2/sites-available/development.conf
+RUN a2dissite 000-default
 
 # Ensure apache has appropriate permissions
 RUN chown -R www-data: /var/www
@@ -78,29 +78,30 @@ RUN cd /var/www/db/functions && make libpgosm.so
 # `trust` and not `peer` authentication because the `import` option on the
 # container runs `osmosis` which uses TCP/IP connections: `peer` authentication
 # is only valid for unix socket connections.
-RUN sed -i -e 's/host    all             all             127.0.0.1\/32            md5/host osm,openstreetmap www-data 127.0.0.1\/32 trust/' /etc/postgresql/9.1/main/pg_hba.conf
+RUN sed -i -e 's/host    all             all             127.0.0.1\/32            md5/host osm,openstreetmap www-data 127.0.0.1\/32 trust/' /etc/postgresql/9.5/main/pg_hba.conf
 
 # Install Phusion Passenger from instructions at
-# <http://www.modrails.com/documentation/Users guide Apache.html>
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 561F9B9CAC40B2F7
+# https://www.phusionpassenger.com/library/walkthroughs/deploy/ruby/ownserver/apache/oss/xenial/install_passenger.html
+RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 561F9B9CAC40B2F7
 RUN apt-get install -y apt-transport-https ca-certificates
-RUN echo "deb https://oss-binaries.phusionpassenger.com/apt/passenger precise main" > /etc/apt/sources.list.d/passenger.list && \
-    chmod 600 /etc/apt/sources.list.d/passenger.list
+RUN sh -c 'echo deb https://oss-binaries.phusionpassenger.com/apt/passenger xenial main > /etc/apt/sources.list.d/passenger.list'
 RUN apt-get update -y
 RUN apt-get install -y libapache2-mod-passenger
 
 # Install openstreetmap-cgimap from instructions at
 # <https://github.com/zerebubuth/openstreetmap-cgimap>.
-RUN apt-get install -y libxml2-dev libpqxx3-dev libfcgi-dev \
+RUN apt-get install -y libxml2-dev libpqxx-dev libfcgi-dev \
   libboost-dev libboost-regex-dev libboost-program-options-dev \
-  libboost-date-time-dev libmemcached-dev \
+  libboost-date-time-dev libboost-filesystem-dev \
+  libboost-system-dev libboost-locale-dev libmemcached-dev \
+  libcrypto++-dev \
   automake autoconf
 RUN cd /tmp && \
     curl --location https://github.com/zerebubuth/openstreetmap-cgimap/archive/master.tar.gz | tar xz
 RUN cd /tmp/openstreetmap-cgimap-master/ && \
     ./autogen.sh && \
     ./configure --with-fcgi=/usr && \
-    make && strip ./map && make install
+    make && make install
 
 # daemontools provides the `fghack` program required for running the `cgimap`
 # service
@@ -120,12 +121,12 @@ RUN cd /tmp/mod_fastcgi_handler-master && \
 ADD cgimap.conf /tmp/
 RUN sed -e 's/RewriteRule ^(.*)/#RewriteRule ^(.*)/' \
         -e 's/\/var\/www/\/var\/www\/public/g' \
-        /tmp/cgimap.conf > /etc/apache2/sites-available/cgimap
-RUN chmod 644 /etc/apache2/sites-available/cgimap
+        /tmp/cgimap.conf > /etc/apache2/sites-available/cgimap.conf
+RUN chmod 644 /etc/apache2/sites-available/cgimap.conf
 
 # Tune postgresql
 ADD postgresql.conf.sed /tmp/
-RUN sed --file /tmp/postgresql.conf.sed --in-place /etc/postgresql/9.1/main/postgresql.conf
+RUN sed --file /tmp/postgresql.conf.sed --in-place /etc/postgresql/9.5/main/postgresql.conf
 
 # Define the application logging logic
 ADD syslog-ng.conf /etc/syslog-ng/conf.d/local.conf
@@ -162,6 +163,8 @@ ADD README.md /usr/local/share/doc/
 # Add the help file
 RUN mkdir -p /usr/local/share/doc/run
 ADD help.txt /usr/local/share/doc/run/help.txt
+
+ENV SECRET_KEY_BASE 7fe3b48a79b2f36eb78a4685224d707767d083f79c51f7d81a9d4a06d1c1e253410d52b1bf88c429e73ffbc5e5f58b037db21f38ea88b8b454e55d52ed8bcc6e
 
 # Add the entrypoint
 ADD run.sh /usr/local/sbin/run

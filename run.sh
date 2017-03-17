@@ -38,15 +38,15 @@ startdb () {
 
 initdb () {
     echo "Initialising postgresql"
-    if [ -d /var/lib/postgresql/9.1/main ] && [ $( ls -A /var/lib/postgresql/9.1/main | wc -c ) -ge 0 ]
+    if [ -d /var/lib/postgresql/9.5/main ] && [ $( ls -A /var/lib/postgresql/9.5/main | wc -c ) -ge 0 ]
     then
-        die "Initialisation failed: the directory is not empty: /var/lib/postgresql/9.1/main"
+        die "Initialisation failed: the directory is not empty: /var/lib/postgresql/9.5/main"
     fi
 
-    mkdir -p /var/lib/postgresql/9.1/main && chown -R postgres /var/lib/postgresql/
-    sudo -u postgres -i /usr/lib/postgresql/9.1/bin/initdb --pgdata /var/lib/postgresql/9.1/main
-    ln -s /etc/ssl/certs/ssl-cert-snakeoil.pem /var/lib/postgresql/9.1/main/server.crt
-    ln -s /etc/ssl/private/ssl-cert-snakeoil.key /var/lib/postgresql/9.1/main/server.key
+    mkdir -p /var/lib/postgresql/9.5/main && chown -R postgres /var/lib/postgresql/
+    sudo -u postgres -i /usr/lib/postgresql/9.5/bin/initdb --pgdata /var/lib/postgresql/9.5/main
+    ln -s /etc/ssl/certs/ssl-cert-snakeoil.pem /var/lib/postgresql/9.5/main/server.crt
+    ln -s /etc/ssl/private/ssl-cert-snakeoil.key /var/lib/postgresql/9.5/main/server.key
 }
 
 createuser () {

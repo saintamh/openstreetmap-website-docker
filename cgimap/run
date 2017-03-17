@@ -29,6 +29,9 @@ sv start postgresql || exit 1
 #touch /var/log/cgimap.log || exit 1
 #chown www-data: /var/log/cgimap.log || exit 1
 
+# extend the ld path to the folder where libcgimap_fcgi.so.0 is located
+export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+
 # NOTE: `runit` requires the service to run in the foreground.  However, `map`
 # needs to run as a daemon if we are going to have more than one `map` instance
 # servicing requests.  `fghack` is therefore used to keep the daemon running in
@@ -36,4 +39,4 @@ sv start postgresql || exit 1
 # background?" at <http://cr.yp.to/daemontools/faq/create.html#fghack> for
 # further information.  `/sbin/setuser www-data` runs the given command as the
 # user `www-data`.  If you omit that part, the command will be run as root.
-exec /usr/bin/fghack /sbin/setuser www-data /usr/local/bin/map --daemon --port=8000
+exec /usr/bin/fghack /sbin/setuser www-data /usr/local/bin/openstreetmap-cgimap --daemon --port=8000

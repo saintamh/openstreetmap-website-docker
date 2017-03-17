@@ -8,6 +8,10 @@
 # permissions setting.
 chown -R postgres /var/lib/postgresql/ || exit 1
 
-exec /sbin/setuser postgres /usr/lib/postgresql/9.1/bin/postgres \
-    -D /var/lib/postgresql/9.1/main \
-    -c config_file=/etc/postgresql/9.1/main/postgresql.conf
+# Create this temp directory, else we get hundreds of error messages about it
+mkdir -p /var/run/postgresql/9.5-main.pg_stat_tmp
+chown postgres /var/run/postgresql/9.5-main.pg_stat_tmp
+
+exec /sbin/setuser postgres /usr/lib/postgresql/9.5/bin/postgres \
+    -D /var/lib/postgresql/9.5/main \
+    -c config_file=/etc/postgresql/9.5/main/postgresql.conf

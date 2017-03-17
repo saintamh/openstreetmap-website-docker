@@ -14,16 +14,16 @@ to:
 * Importing OSM data into the database
 * Drop databases
 
-Run `docker run homme/openstreetmap-website` for usage instructions.
+Run `docker run -it homme/openstreetmap-website` for usage instructions.
 
 ## About
 
-The container runs Ubuntu 12.04 (Precise) and is based on the
-[phusion/baseimage-docker](https://github.com/phusion/baseimage-docker).  It
+The container runs Ubuntu 16.04 (Xenial) and is based on the
+[phusion/baseimage-docker](https://github.com/phusion/baseimage-docker). It
 includes:
 
-* Postgresql 9.1
-* Apache 2.2 with Phusion Passenger
+* Postgresql 9.5
+* Apache 2.4 with Phusion Passenger
 * The latest Rails Port (at the time of image creation)
 * The latest CGIMap code (at the time of image creation)
 
